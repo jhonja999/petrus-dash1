@@ -2,37 +2,38 @@ import { authMiddleware, clerkClient } from "@clerk/nextjs"
 import { NextResponse } from "next/server"
 
 export default authMiddleware({
-  // Rutas públicas que no requieren autenticación
-  publicRoutes: ["/", "/api/webhook", "/auth/login"],
-
+  publicRoutes: ["/", "/sign-in(.*)", "/sign-up(.*)"],
   async afterAuth(auth, req) {
-    // Si el usuario no está autenticado y la ruta no es pública, redirigir a login
-    if (!auth.userId && !auth.isPublicRoute) {
-      return NextResponse.redirect(new URL("/auth/login", req.url))
+    // If the user is authenticated but trying to access sign-in/sign-up, redirect them
+    if (auth.userId && (req.nextUrl.pathname.startsWith("/sign-in") || req.nextUrl.pathname.startsWith("/sign-up"))) {
+      const user = await clerkClient.users.getUser(auth.userId)
+      const role = (user.publicMetadata.role as string) || "conductor"
+
+      if (role === "admin") {
+        return NextResponse.redirect(new URL("/dashboard", req.url))
+      } else {
+        return NextResponse.redirect(new URL("/driver", req.url))
+      }
     }
 
-    // Si el usuario está autenticado, verificar su rol
+    // If the user is not authenticated and trying to access protected routes
+    if (!auth.userId && !auth.isPublicRoute) {
+      return NextResponse.redirect(new URL("/sign-in", req.url))
+    }
+
+    // Role-based access control
     if (auth.userId) {
       const user = await clerkClient.users.getUser(auth.userId)
-      const role = user.publicMetadata.role as string
+      const role = (user.publicMetadata.role as string) || "conductor"
 
-      // Ruta de admin pero el usuario no es admin
-      if (req.nextUrl.pathname.startsWith("/admin") && role !== "ADMIN") {
-        return NextResponse.redirect(new URL("/conductor/dashboard", req.url))
+      // Admin routes protection
+      if (req.nextUrl.pathname.startsWith("/dashboard") && role !== "admin") {
+        return NextResponse.redirect(new URL("/unauthorized", req.url))
       }
 
-      // Ruta de conductor pero el usuario es admin
-      if (req.nextUrl.pathname.startsWith("/conductor") && role === "ADMIN") {
-        return NextResponse.redirect(new URL("/admin/dashboard", req.url))
-      }
-
-      // Si el usuario está autenticado pero está en la página de login, redirigir según su rol
-      if (req.nextUrl.pathname === "/auth/login") {
-        if (role === "ADMIN") {
-          return NextResponse.redirect(new URL("/admin/dashboard", req.url))
-        } else {
-          return NextResponse.redirect(new URL("/conductor/dashboard", req.url))
-        }
+      // Driver routes protection
+      if (req.nextUrl.pathname.startsWith("/driver") && role !== "conductor") {
+        return NextResponse.redirect(new URL("/unauthorized", req.url))
       }
     }
 

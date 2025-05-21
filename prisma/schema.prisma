@@ -1,0 +1,93 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  clerkId   String?  @unique
+  dni       String   @unique
+  name      String
+  lastname  String
+  email     String   @unique
+  role      String   // "Conductor" or "ADMIN"
+  state     String   // "Activo", "Inactivo", "Suspendido", "Eliminado", "Asignado"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  Assignment Assignment[]
+}
+
+model Truck {
+  id          Int      @id @default(autoincrement())
+  placa       String   @unique
+  typefuel    String   // "DIESEL_B5", "GASOLINA_90", "GASOLINA_95", "GLP", "ELECTRICA"
+  capacitygal Decimal  // Capacity in gallons
+  state       String   // "Activo", "Inactivo", "Mantenimiento", "Transito", "Descarga", "Asignado"
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  Assignment Assignment[]
+}
+
+model Customer {
+  id           Int      @id @default(autoincrement())
+  companyname  String
+  ruc          String   @unique
+  address      String
+  contactName  String?
+  contactPhone String?
+  contactEmail String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  Discharge Discharge[]
+}
+
+model Assignment {
+  id             Int      @id @default(autoincrement())
+  truckId        Int
+  driverId       Int
+  date           DateTime @default(now())
+  totalLoaded    Decimal  // Total fuel loaded in gallons
+  totalRemaining Decimal  // Remaining fuel in gallons
+  fuelType       String   // "DIESEL_B5", "GASOLINA_90", "GASOLINA_95", "GLP", "ELECTRICA"
+  isCompleted    Boolean  @default(false)
+  notes          String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  truck     Truck      @relation(fields: [truckId], references: [id])
+  driver    User       @relation(fields: [driverId], references: [id])
+  discharges Discharge[]
+}
+
+model Discharge {
+  id              Int      @id @default(autoincrement())
+  assignmentId    Int
+  customerId      Int
+  startMarker     Decimal  // Initial marker reading in gallons
+  endMarker       Decimal  // Final marker reading in gallons
+  totalDischarged Decimal  // Total fuel discharged in gallons
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  assignment Assignment @relation(fields: [assignmentId], references: [id])
+  customer   Customer   @relation(fields: [customerId], references: [id])
+
+  // Composite unique constraint
+  @@unique([assignmentId, customerId])
+}

@@ -1,73 +1,93 @@
-import { NextResponse } from "next/server"
-import { z } from "zod"
+import { type NextRequest, NextResponse } from "next/server"
+import { getAuth } from "@/lib/auth"
 import prisma from "@/lib/prisma"
 import { dischargeSchema } from "@/lib/zod-schemas"
 
-export async function POST(req: Request) {
+export async function POST(request: NextRequest) {
+  const userId = getAuth()
+
   try {
-    const body = await req.json()
+    const body = await request.json()
 
-    // Validar datos con Zod
+    // Validate the request body
     const validatedData = dischargeSchema.parse(body)
+    const { assignmentId, customerId, startMarker, endMarker, notes } = validatedData
 
-    // Verificar si la asignación existe
+    // Calculate the total discharged
+    const totalDischarged = endMarker - startMarker
+
+    if (totalDischarged <= 0) {
+      return NextResponse.json({ error: "End marker must be greater than start marker" }, { status: 400 })
+    }
+
+    // Get the current assignment
     const assignment = await prisma.assignment.findUnique({
-      where: { id: validatedData.assignmentId },
-      include: { truck: true },
+      where: { id: assignmentId },
     })
 
     if (!assignment) {
-      return NextResponse.json({ error: "Asignación no encontrada" }, { status: 404 })
+      return NextResponse.json({ error: "Assignment not found" }, { status: 404 })
     }
 
-    // Verificar si el cliente existe
-    const customer = await prisma.customer.findUnique({
-      where: { id: validatedData.customerId },
-    })
-
-    if (!customer) {
-      return NextResponse.json({ error: "Cliente no encontrado" }, { status: 404 })
+    // Check if there's enough fuel remaining
+    if (Number(assignment.totalRemaining) < totalDischarged) {
+      return NextResponse.json({ error: "Not enough fuel remaining for this discharge" }, { status: 400 })
     }
 
-    // Verificar que la descarga no exceda el combustible restante
-    if (validatedData.totalDischarged > assignment.totalRemaining) {
-      return NextResponse.json({ error: "La descarga excede el combustible restante" }, { status: 400 })
-    }
-
-    // Actualizar estado del camión a "Descarga"
-    await prisma.truck.update({
-      where: { id: assignment.truck.id },
-      data: { state: "Descarga" },
-    })
-
-    // Crear descarga
-    const discharge = await prisma.discharge.create({
-      data: validatedData,
-    })
-
-    // Actualizar combustible restante en la asignación
-    await prisma.assignment.update({
-      where: { id: assignment.id },
-      data: {
-        totalRemaining: {
-          decrement: validatedData.totalDischarged,
+    // Start a transaction
+    const result = await prisma.$transaction(async (tx) => {
+      // Update the discharge record
+      const discharge = await tx.discharge.update({
+        where: {
+          assignmentId_customerId: {
+            assignmentId,
+            customerId,
+          },
         },
-      },
+        data: {
+          totalDischarged,
+          startMarker,
+          endMarker,
+          notes,
+        },
+      })
+
+      // Update the assignment's remaining fuel
+      const updatedAssignment = await tx.assignment.update({
+        where: { id: assignmentId },
+        data: {
+          totalRemaining: {
+            decrement: totalDischarged,
+          },
+        },
+        include: {
+          discharges: true,
+        },
+      })
+
+      // Check if all discharges are completed
+      const allCompleted = updatedAssignment.discharges.every((d) => Number(d.totalDischarged) > 0)
+
+      // If all discharges are completed, mark the assignment as completed
+      if (allCompleted) {
+        await tx.assignment.update({
+          where: { id: assignmentId },
+          data: { isCompleted: true },
+        })
+
+        // Update the truck state back to "Activo"
+        await tx.truck.update({
+          where: { id: updatedAssignment.truckId },
+          data: { state: "Activo" },
+        })
+      }
+
+      return { discharge, updatedAssignment }
     })
 
-    // Restaurar estado del camión a "Asignado"
-    await prisma.truck.update({
-      where: { id: assignment.truck.id },
-      data: { state: "Asignado" },
-    })
-
-    return NextResponse.json(discharge, { status: 201 })
+    return NextResponse.json(result, { status: 200 })
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: "Datos inválidos", details: error.errors }, { status: 400 })
-    }
-
-    console.error("Error creating discharge:", error)
-    return NextResponse.json({ error: "Error al crear descarga" }, { status: 500 })
+    console.error("Error recording discharge:", error)
+    return NextResponse.json({ error: "Error recording discharge" }, { status: 400 })
   }
 }

@@ -1,95 +1,73 @@
-import { NextResponse } from "next/server"
-import { z } from "zod"
+import { type NextRequest, NextResponse } from "next/server"
+import { getAuth, requireAdmin } from "@/lib/auth"
 import prisma from "@/lib/prisma"
 import { userSchema } from "@/lib/zod-schemas"
 
-export async function GET(req: Request, { params }: { params: { id: string } }) {
-  try {
-    const id = Number.parseInt(params.id)
+export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+  const userId = getAuth()
+  const id = Number.parseInt(params.id)
 
+  try {
     const user = await prisma.user.findUnique({
       where: { id },
     })
 
     if (!user) {
-      return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 })
+      return NextResponse.json({ error: "User not found" }, { status: 404 })
     }
 
     return NextResponse.json(user)
   } catch (error) {
     console.error("Error fetching user:", error)
-    return NextResponse.json({ error: "Error al obtener usuario" }, { status: 500 })
+    return NextResponse.json({ error: "Error fetching user" }, { status: 500 })
   }
 }
 
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
-  try {
-    const id = Number.parseInt(params.id)
-    const body = await req.json()
+export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+  await requireAdmin()
+  const id = Number.parseInt(params.id)
 
-    // Validar datos con Zod
+  try {
+    const body = await request.json()
+
+    // Validate the request body
     const validatedData = userSchema.parse(body)
 
-    // Verificar si el usuario existe
-    const existingUser = await prisma.user.findUnique({
-      where: { id },
-    })
-
-    if (!existingUser) {
-      return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 })
-    }
-
-    // Verificar si el DNI o email ya existen en otro usuario
-    const duplicateUser = await prisma.user.findFirst({
-      where: {
-        OR: [{ dni: validatedData.dni }, { email: validatedData.email }],
-        NOT: { id },
-      },
-    })
-
-    if (duplicateUser) {
-      return NextResponse.json({ error: "El DNI o email ya están registrados por otro usuario" }, { status: 400 })
-    }
-
-    // Actualizar usuario
-    const updatedUser = await prisma.user.update({
+    // Update the user
+    const user = await prisma.user.update({
       where: { id },
       data: validatedData,
     })
 
-    return NextResponse.json(updatedUser)
+    return NextResponse.json(user)
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: "Datos inválidos", details: error.errors }, { status: 400 })
-    }
-
     console.error("Error updating user:", error)
-    return NextResponse.json({ error: "Error al actualizar usuario" }, { status: 500 })
+    return NextResponse.json({ error: "Error updating user" }, { status: 400 })
   }
 }
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
-  try {
-    const id = Number.parseInt(params.id)
+export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+  await requireAdmin()
+  const id = Number.parseInt(params.id)
 
-    // Verificar si el usuario existe
-    const existingUser = await prisma.user.findUnique({
-      where: { id },
+  try {
+    // Check if user has assignments
+    const userHasAssignments = await prisma.assignment.findFirst({
+      where: { driverId: id },
     })
 
-    if (!existingUser) {
-      return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 })
+    if (userHasAssignments) {
+      return NextResponse.json({ error: "Cannot delete user with assignments" }, { status: 400 })
     }
 
-    // Eliminar usuario (cambiar estado a Eliminado)
-    const updatedUser = await prisma.user.update({
+    // Delete the user
+    await prisma.user.delete({
       where: { id },
-      data: { state: "Eliminado" },
     })
 
-    return NextResponse.json(updatedUser)
+    return NextResponse.json({ success: true })
   } catch (error) {
     console.error("Error deleting user:", error)
-    return NextResponse.json({ error: "Error al eliminar usuario" }, { status: 500 })
+    return NextResponse.json({ error: "Error deleting user" }, { status: 500 })
   }
 }
