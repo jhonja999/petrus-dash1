@@ -11,7 +11,9 @@ import { FUEL_TYPES } from "@/lib/constants"
 
 async function getAssignment(id: number) {
   const assignment = await prisma.assignment.findUnique({
-    where: { id },
+    where: {
+      id: id, // Explicitly use named parameter
+    },
     include: {
       truck: true,
       driver: true,
@@ -42,7 +44,6 @@ export default async function AssignmentDetailPage({
   const totalDischarged = assignment.discharges.reduce((sum, discharge) => sum + Number(discharge.totalDischarged), 0)
 
   // Get customers that have not been discharged yet
-  const assignedCustomerIds = assignment.discharges.map((d) => d.customerId)
   const pendingCustomers = await prisma.customer.findMany({
     where: {
       id: {
@@ -81,7 +82,7 @@ export default async function AssignmentDetailPage({
               </div>
               <div className="grid grid-cols-2 gap-1">
                 <dt className="font-medium">Tipo de Combustible:</dt>
-                <dd>{FUEL_TYPES[assignment.fuelType]}</dd>
+                <dd>{FUEL_TYPES[assignment.fuelType as keyof typeof FUEL_TYPES]}</dd>
               </div>
               <div className="grid grid-cols-2 gap-1">
                 <dt className="font-medium">Capacidad:</dt>

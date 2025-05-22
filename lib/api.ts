@@ -133,3 +133,18 @@ export const AnalyticsApi = {
   getAssignments: (period = "day") => fetchApi<any[]>(`/api/analytics/assignments?period=${period}`),
   getTrucksStatus: () => fetchApi<any[]>("/api/analytics/trucks-status"),
 }
+
+// Helper functions for common API calls
+export const fetchTrucks = async (state: string | null | undefined) => {
+  // Convert null to undefined to match the TrucksApi.getAll parameter type
+  return await TrucksApi.getAll(state === null ? undefined : state)
+}
+
+export const fetchUsers = async (role: string | null | undefined, state: string | null | undefined) => {
+  // Convert null to undefined to match the UsersApi.getAll parameter types
+  return await UsersApi.getAll(role === null ? undefined : role, state === null ? undefined : state)
+}
+
+export const fetchCustomers = async () => {
+  return await CustomersApi.getAll()
+}
