@@ -3,39 +3,49 @@ import { requireAdmin } from "@/lib/auth"
 import prisma from "@/lib/prisma"
 import { getDateRange } from "@/lib/date"
 
+type FuelSummary = {
+  fuelType: string
+  total: number
+}
+
 export async function GET(request: NextRequest) {
   await requireAdmin()
 
-  // Get query parameters
   const searchParams = request.nextUrl.searchParams
   const period = searchParams.get("period") || "day"
 
   try {
     const { start, end } = getDateRange(period as any)
 
-    // Get fuel consumption by type
-    const fuelConsumption = await prisma.discharge.groupBy({
-      by: ["assignment.fuelType"],
-      _sum: {
-        totalDischarged: true,
-      },
+    // Traer todas las descargas con su tipo de combustible
+    const discharges = await prisma.discharge.findMany({
       where: {
         createdAt: {
           gte: start,
           lte: end,
         },
       },
-      orderBy: {
-        _sum: {
-          totalDischarged: "desc",
+      include: {
+        assignment: {
+          select: {
+            fuelType: true,
+          },
         },
       },
     })
 
-    // Format data for chart
-    const formattedData = fuelConsumption.map((item) => ({
-      fuelType: item.fuelType,
-      total: Number(item._sum.totalDischarged) || 0,
+    // Agrupar en JS
+    const fuelMap = new Map<string, number>()
+
+    for (const discharge of discharges) {
+      const type = discharge.assignment.fuelType
+      const prev = fuelMap.get(type) || 0
+      fuelMap.set(type, prev + Number(discharge.totalDischarged))
+    }
+
+    const formattedData: FuelSummary[] = Array.from(fuelMap.entries()).map(([fuelType, total]) => ({
+      fuelType,
+      total,
     }))
 
     return NextResponse.json(formattedData)

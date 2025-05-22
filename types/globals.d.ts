@@ -1,4 +1,12 @@
 // Global type definitions for the application
+type SessionClaims = {
+  metadata?: {
+    role?: string;
+  };
+};
+
+const { userId, sessionClaims } = await auth();
+const userRole = (sessionClaims as SessionClaims)?.metadata?.role;
 
 // Truck types
 type TruckState = "Activo" | "Inactivo" | "Mantenimiento" | "Transito" | "Descarga" | "Asignado"
@@ -138,4 +146,9 @@ interface DischargeFormValues {
   startMarker: number
   endMarker: number
   notes?: string
+}
+
+interface AssignmentAnalytics  {
+  period: string
+  count: number
 }

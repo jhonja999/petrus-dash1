@@ -6,16 +6,22 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import prisma from "@/lib/prisma"
 import { getAuth } from "@/lib/auth"
-import { clerkClient } from "@clerk/nextjs"
+import { currentUser } from "@clerk/nextjs/server"
 import { FUEL_TYPES } from "@/lib/constants"
 
 async function getAssignment(id: number) {
-  const userId = getAuth()
-  const user = await clerkClient.users.getUser(userId)
+  const userId = await getAuth()
+  const user = await currentUser()
+
+  if (!user) {
+    notFound()
+  }
 
   // Get the Prisma user ID from the Clerk user metadata
-  const userRecord = await prisma.user.findUnique({
-    where: { clerkId: userId },
+  const userRecord = await prisma.user.findFirst({
+    where: {
+      clerkId: userId,
+    },
   })
 
   if (!userRecord) {

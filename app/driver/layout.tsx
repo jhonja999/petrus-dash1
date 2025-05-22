@@ -5,6 +5,7 @@ import Link from "next/link"
 
 import { requireDriver } from "@/lib/auth"
 import { Button } from "@/components/ui/button"
+import { MobileNav } from "@/components/mobile-nav"
 
 export default async function DriverLayout({
   children,
@@ -22,27 +23,34 @@ export default async function DriverLayout({
             <Fuel className="h-5 w-5" />
             <span>Fuel Dispatch</span>
           </Link>
-          <nav className="ml-auto flex items-center gap-4">
+
+          {/* Desktop Navigation */}
+          <nav className="ml-auto hidden items-center gap-4 md:flex">
             <Link href="/driver">
               <Button variant="ghost" size="sm" className="gap-2">
                 <Home className="h-4 w-4" />
-                <span className="hidden sm:inline-block">Inicio</span>
+                <span>Inicio</span>
               </Button>
             </Link>
             <Link href="/driver/select-truck">
               <Button variant="ghost" size="sm" className="gap-2">
                 <Truck className="h-4 w-4" />
-                <span className="hidden sm:inline-block">Seleccionar Camión</span>
+                <span>Seleccionar Camión</span>
               </Button>
             </Link>
             <Link href="/driver/history">
               <Button variant="ghost" size="sm" className="gap-2">
                 <History className="h-4 w-4" />
-                <span className="hidden sm:inline-block">Historial</span>
+                <span>Historial</span>
               </Button>
             </Link>
             <UserButton afterSignOutUrl="/sign-in" />
           </nav>
+
+          {/* Mobile Navigation */}
+          <div className="ml-auto md:hidden">
+            <MobileNav />
+          </div>
         </div>
       </header>
 

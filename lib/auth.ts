@@ -22,13 +22,13 @@ export async function requireAdmin() {
 export async function requireDriver() {
   const role = await getUserRole()
 
-  if (role !== "conductor") {
+  if (role !== "conductor" && role !== "admin") {
     redirect("/unauthorized")
   }
 }
 
-export function getAuth() {
-  const { userId } = auth()
+export async function getAuth() {
+  const { userId } = await auth()
 
   if (!userId) {
     redirect("/sign-in")

@@ -21,6 +21,7 @@ type AssignmentType = {
   totalRemaining: number
   fuelType: string
   truck: {
+    id: number
     placa: string
     state: string
   }

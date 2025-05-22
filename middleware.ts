@@ -1,46 +1,55 @@
-import { authMiddleware, clerkClient } from "@clerk/nextjs"
-import { NextResponse } from "next/server"
+import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
+import { NextResponse } from 'next/server';
 
-export default authMiddleware({
-  publicRoutes: ["/", "/sign-in(.*)", "/sign-up(.*)"],
-  async afterAuth(auth, req) {
-    // If the user is authenticated but trying to access sign-in/sign-up, redirect them
-    if (auth.userId && (req.nextUrl.pathname.startsWith("/sign-in") || req.nextUrl.pathname.startsWith("/sign-up"))) {
-      const user = await clerkClient.users.getUser(auth.userId)
-      const role = (user.publicMetadata.role as string) || "conductor"
+interface SessionClaims {
+  metadata?: {
+    role?: string;
+  };
+}
 
-      if (role === "admin") {
-        return NextResponse.redirect(new URL("/dashboard", req.url))
-      } else {
-        return NextResponse.redirect(new URL("/driver", req.url))
-      }
+const isAdminRoute = createRouteMatcher(['/admin(.*)', '/settings(.*)']);
+const isConductorRoute = createRouteMatcher([
+  '/dashboard(.*)',
+  '/driver(.*)',
+  '/trucks(.*)',
+  '/customers(.*)',
+  '/assignment(.*)',
+  '/discharges(.*)',
+  '/reports(.*)',
+  '/users(.*)',
+]);
+
+export default clerkMiddleware(async (auth, req) => {
+  const { userId, sessionClaims } = await auth();
+  const claims = sessionClaims as SessionClaims;
+  const userRole = claims.metadata?.role;
+
+  if (!userId) {
+    return NextResponse.next();
+  }
+
+  if (isAdminRoute(req)) {
+    if (userRole !== 'admin') {
+      const url = new URL('/unauthorized', req.url);
+      return NextResponse.redirect(url);
     }
+  }
 
-    // If the user is not authenticated and trying to access protected routes
-    if (!auth.userId && !auth.isPublicRoute) {
-      return NextResponse.redirect(new URL("/sign-in", req.url))
+  if (isConductorRoute(req)) {
+    if (userRole !== 'admin' && userRole !== 'conductor') {
+      const url = new URL('/unauthorized', req.url);
+      return NextResponse.redirect(url);
     }
+  }
 
-    // Role-based access control
-    if (auth.userId) {
-      const user = await clerkClient.users.getUser(auth.userId)
-      const role = (user.publicMetadata.role as string) || "conductor"
-
-      // Admin routes protection
-      if (req.nextUrl.pathname.startsWith("/dashboard") && role !== "admin") {
-        return NextResponse.redirect(new URL("/unauthorized", req.url))
-      }
-
-      // Driver routes protection
-      if (req.nextUrl.pathname.startsWith("/driver") && role !== "conductor") {
-        return NextResponse.redirect(new URL("/unauthorized", req.url))
-      }
-    }
-
-    return NextResponse.next()
-  },
-})
+  return NextResponse.next();
+});
 
 export const config = {
-  matcher: ["/((?!.+\\.[\\w]+$|_next).*)", "/", "/(api|trpc)(.*)"],
+  matcher: [
+    // Skip Next.js internals and all static files, unless found in search params
+    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
+    // Always run for API routes
+    "/(api|trpc)(.*)",
+  ],
 }

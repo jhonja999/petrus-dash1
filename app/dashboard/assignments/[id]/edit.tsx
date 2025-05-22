@@ -16,7 +16,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Checkbox } from "@/components/ui/checkbox"
 import { assignmentSchema } from "@/lib/zod-schemas"
-import { FUEL_TYPES } from "@/lib/constants"
+import { FUEL_TYPES, type FuelType } from "@/lib/constants"
 
 type TruckType = {
   id: number
@@ -98,7 +98,7 @@ export default function EditAssignmentPage({ params }: { params: { id: string } 
           truckId: assignmentData.truckId,
           driverId: assignmentData.driverId,
           totalLoaded: Number(assignmentData.totalLoaded),
-          fuelType: assignmentData.fuelType,
+          fuelType: assignmentData.fuelType as FuelType,
           notes: assignmentData.notes || "",
           customers: discharges.map((d: any) => d.customerId),
         })
@@ -122,7 +122,7 @@ export default function EditAssignmentPage({ params }: { params: { id: string } 
 
     // Update fuel type based on selected truck
     if (truck) {
-      form.setValue("fuelType", truck.typefuel)
+      form.setValue("fuelType", truck.typefuel as FuelType)
     }
   }, [form.watch("truckId"), trucks, form])
 
@@ -201,7 +201,8 @@ export default function EditAssignmentPage({ params }: { params: { id: string } 
                       <SelectContent>
                         {trucks.map((truck) => (
                           <SelectItem key={truck.id} value={truck.id.toString()}>
-                            {truck.placa} - {FUEL_TYPES[truck.typefuel]} ({truck.capacitygal.toString()} gal)
+                            {truck.placa} - {FUEL_TYPES[truck.typefuel as FuelType] || truck.typefuel} (
+                            {truck.capacitygal.toString()} gal)
                           </SelectItem>
                         ))}
                       </SelectContent>

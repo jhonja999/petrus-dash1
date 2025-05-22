@@ -1,78 +1,110 @@
+"use client"
+
 import type React from "react"
 import { UserButton } from "@clerk/nextjs"
 import { Fuel, Truck, Users, Home, BarChart3 } from "lucide-react"
 import Link from "next/link"
 
-import { requireAdmin } from "@/lib/auth"
-import { Button } from "@/components/ui/button"
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarHeader,
+  SidebarInset,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar"
 
-export default async function DashboardLayout({
+export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  await requireAdmin()
-
   return (
-    <div className="flex min-h-screen flex-col md:flex-row">
-      {/* Sidebar */}
-      <aside className="w-full border-r bg-muted/40 md:w-64">
-        <div className="flex h-14 items-center border-b px-4">
-          <Link href="/dashboard" className="flex items-center gap-2 font-bold">
-            <Fuel className="h-5 w-5" />
-            <span>Fuel Dispatch</span>
-          </Link>
-        </div>
-        <nav className="flex flex-col gap-2 p-4">
-          <Link href="/dashboard">
-            <Button variant="ghost" className="w-full justify-start gap-2">
-              <Home className="h-4 w-4" />
-              Dashboard
-            </Button>
-          </Link>
-          <Link href="/dashboard/trucks">
-            <Button variant="ghost" className="w-full justify-start gap-2">
-              <Truck className="h-4 w-4" />
-              Camiones
-            </Button>
-          </Link>
-          <Link href="/dashboard/customers">
-            <Button variant="ghost" className="w-full justify-start gap-2">
-              <Users className="h-4 w-4" />
-              Clientes
-            </Button>
-          </Link>
-          <Link href="/dashboard/users">
-            <Button variant="ghost" className="w-full justify-start gap-2">
-              <Users className="h-4 w-4" />
-              Conductores
-            </Button>
-          </Link>
-          <Link href="/dashboard/assignments">
-            <Button variant="ghost" className="w-full justify-start gap-2">
-              <Fuel className="h-4 w-4" />
-              Asignaciones
-            </Button>
-          </Link>
-          <Link href="/dashboard/reports/fuel">
-            <Button variant="ghost" className="w-full justify-start gap-2">
-              <BarChart3 className="h-4 w-4" />
-              Reportes
-            </Button>
-          </Link>
-        </nav>
-        <div className="mt-auto border-t p-4">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium">Admin</span>
-            <UserButton afterSignOutUrl="/sign-in" />
+    <SidebarProvider>
+      <Sidebar>
+        <SidebarHeader>
+          <div className="flex h-14 items-center px-4">
+            <Link href="/dashboard" className="flex items-center gap-2 font-bold">
+              <Fuel className="h-5 w-5" />
+              <span>Fuel Dispatch</span>
+            </Link>
           </div>
-        </div>
-      </aside>
+        </SidebarHeader>
+        <SidebarContent>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild>
+                <Link href="/dashboard">
+                  <Home className="h-4 w-4" />
+                  <span>Dashboard</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild>
+                <Link href="/dashboard/trucks">
+                  <Truck className="h-4 w-4" />
+                  <span>Camiones</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild>
+                <Link href="/dashboard/customers">
+                  <Users className="h-4 w-4" />
+                  <span>Clientes</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild>
+                <Link href="/dashboard/users">
+                  <Users className="h-4 w-4" />
+                  <span>Conductores</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild>
+                <Link href="/dashboard/assignments">
+                  <Fuel className="h-4 w-4" />
+                  <span>Asignaciones</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild>
+                <Link href="/dashboard/reports/fuel">
+                  <BarChart3 className="h-4 w-4" />
+                  <span>Reportes</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarContent>
+        <SidebarFooter>
+          <div className="border-t p-4">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium">Admin</span>
+              <UserButton afterSignOutUrl="/sign-in" />
+            </div>
+          </div>
+        </SidebarFooter>
+      </Sidebar>
 
-      {/* Main content */}
-      <main className="flex-1 overflow-auto">
-        <div className="p-6">{children}</div>
-      </main>
-    </div>
+      <SidebarInset>
+        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+          <SidebarTrigger className="-ml-1" />
+          <div className="flex-1">{/* Optional header content */}</div>
+        </header>
+        <main className="flex-1 overflow-auto">
+          <div className="p-6">{children}</div>
+        </main>
+      </SidebarInset>
+    </SidebarProvider>
   )
 }

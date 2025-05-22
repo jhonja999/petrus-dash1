@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import prisma from "@/lib/prisma"
-import { USER_STATES } from "@/lib/constants"
+import { USER_STATES, type UserState } from "@/lib/constants"
 
 async function getDrivers() {
   return await prisma.user.findMany({
@@ -100,7 +100,7 @@ function UserStatusBadge({ status }: { status: string }) {
 
   return (
     <Badge variant={getVariant() as any} className="whitespace-nowrap">
-      {USER_STATES[status]}
+      {USER_STATES[status as UserState] || status}
     </Badge>
   )
 }

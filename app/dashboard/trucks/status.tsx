@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { TRUCK_STATES, FUEL_TYPES } from "@/lib/constants"
+import { TRUCK_STATES, FUEL_TYPES, type TruckState, type FuelType } from "@/lib/constants"
 
 type TruckType = {
   id: number
@@ -131,7 +131,7 @@ export default function TruckStatusPage() {
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm">Tipo de Combustible:</span>
-                <span>{FUEL_TYPES[truck.typefuel]}</span>
+                <span>{FUEL_TYPES[truck.typefuel as FuelType] || truck.typefuel}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm">Capacidad:</span>
@@ -139,7 +139,7 @@ export default function TruckStatusPage() {
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm">Estado Actual:</span>
-                <Badge>{TRUCK_STATES[truck.state]}</Badge>
+                <Badge>{TRUCK_STATES[truck.state as TruckState] || truck.state}</Badge>
               </div>
             </div>
           </div>

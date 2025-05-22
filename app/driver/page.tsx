@@ -5,17 +5,23 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Badge } from "@/components/ui/badge"
 import prisma from "@/lib/prisma"
 import { getAuth } from "@/lib/auth"
-import { clerkClient } from "@clerk/nextjs"
+import { currentUser } from "@clerk/nextjs/server"
 import { getDateRange } from "@/lib/date"
 import { FUEL_TYPES } from "@/lib/constants"
 
 async function getDriverAssignments() {
-  const userId = getAuth()
-  const user = await clerkClient.users.getUser(userId)
+  const userId = await getAuth()
+  const user = await currentUser()
+
+  if (!user) {
+    return { assignments: [], activeTruck: null }
+  }
 
   // Get the Prisma user ID from the Clerk user metadata
-  const userRecord = await prisma.user.findUnique({
-    where: { clerkId: userId },
+  const userRecord = await prisma.user.findFirst({
+    where: {
+      clerkId: userId,
+    },
   })
 
   if (!userRecord) {
@@ -150,7 +156,7 @@ export default async function DriverDashboardPage() {
                               <MapPin className="mt-0.5 h-3 w-3 shrink-0 text-muted-foreground" />
                               <span className="flex-1 truncate">{discharge.customer.companyname}</span>
                               {Number(discharge.totalDischarged) > 0 ? (
-                                <Badge variant="success" className="ml-auto shrink-0">
+                                <Badge variant="secondary" className="ml-auto shrink-0 bg-green-100 text-green-800">
                                   Completado
                                 </Badge>
                               ) : (

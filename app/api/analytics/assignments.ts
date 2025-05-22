@@ -5,6 +5,11 @@ import { getDateRange } from "@/lib/date"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
 
+type AssignmentAnalytics = {
+  period: string
+  count: number
+}
+
 export async function GET(request: NextRequest) {
   await requireAdmin()
 
@@ -17,7 +22,7 @@ export async function GET(request: NextRequest) {
 
     // Get assignments by period
     let assignments
-    let formattedData = []
+     let formattedData: AssignmentAnalytics[] = []
 
     if (period === "day") {
       // Group by hour

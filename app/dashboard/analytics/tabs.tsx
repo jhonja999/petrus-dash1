@@ -17,7 +17,7 @@ import {
   Pie,
   Cell,
 } from "recharts"
-import { TRUCK_STATES, FUEL_TYPES } from "@/lib/constants"
+import { TRUCK_STATES, FUEL_TYPES, type TruckState, type FuelType } from "@/lib/constants"
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884d8", "#82ca9d"]
 
@@ -45,13 +45,13 @@ export function AnalyticsTabs() {
 
           // Format truck status data for pie chart
           const formattedTruckStatus = truckStatus.map((item: any) => ({
-            name: TRUCK_STATES[item.state] || item.state,
+            name: TRUCK_STATES[item.state as TruckState] || item.state,
             value: item.count,
           }))
 
           // Format fuel consumption data for bar chart
           const formattedFuelConsumption = fuelConsumption.map((item: any) => ({
-            name: FUEL_TYPES[item.fuelType] || item.fuelType,
+            name: FUEL_TYPES[item.fuelType as FuelType] || item.fuelType,
             galones: item.total,
           }))
 

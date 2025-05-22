@@ -1,20 +1,26 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { Truck, Fuel } from "lucide-react"
+import { Truck, Fuel, CalendarIcon } from "lucide-react"
 import prisma from "@/lib/prisma"
 import { getAuth } from "@/lib/auth"
-import { clerkClient } from "@clerk/nextjs"
+import { currentUser } from "@clerk/nextjs/server"
 import { formatDate } from "@/lib/date"
 import { FUEL_TYPES } from "@/lib/constants"
 
 async function getDriverHistory() {
-  const userId = getAuth()
-  const user = await clerkClient.users.getUser(userId)
+  const userId = await getAuth()
+  const user = await currentUser()
+
+  if (!user) {
+    return []
+  }
 
   // Get the Prisma user ID from the Clerk user metadata
-  const userRecord = await prisma.user.findUnique({
-    where: { clerkId: userId },
+  const userRecord = await prisma.user.findFirst({
+    where: {
+      clerkId: userId,
+    },
   })
 
   if (!userRecord) {
@@ -57,7 +63,7 @@ export default async function DriverHistoryPage() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Truck className="h-5 w-5" />
+            <CalendarIcon className="h-5 w-5" />
             Jornadas Completadas
           </CardTitle>
           <CardDescription>Últimas jornadas finalizadas</CardDescription>

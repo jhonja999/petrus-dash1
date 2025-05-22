@@ -5,7 +5,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { FUEL_TYPES } from "@/lib/constants"
+import { FUEL_TYPES, type FuelType } from "@/lib/constants"
 
 type FuelConsumptionData = {
   fuelType: string
@@ -51,7 +51,7 @@ export default function FuelReportsPage() {
 
   // Transform fuel consumption data for chart
   const fuelChartData = fuelConsumption.map((item) => ({
-    name: FUEL_TYPES[item.fuelType] || item.fuelType,
+    name: FUEL_TYPES[item.fuelType as FuelType] || item.fuelType,
     galones: item.total,
   }))
 

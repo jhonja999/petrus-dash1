@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import prisma from "@/lib/prisma"
-import { FUEL_TYPES, TRUCK_STATES } from "@/lib/constants"
+import { FUEL_TYPES, TRUCK_STATES, type FuelType, type TruckState } from "@/lib/constants"
 
 async function getTrucks() {
   return await prisma.truck.findMany({
@@ -47,7 +47,7 @@ export default async function TrucksPage() {
             {trucks.map((truck) => (
               <TableRow key={truck.id}>
                 <TableCell className="font-medium">{truck.placa}</TableCell>
-                <TableCell>{FUEL_TYPES[truck.typefuel]}</TableCell>
+                <TableCell>{FUEL_TYPES[truck.typefuel as FuelType]}</TableCell>
                 <TableCell>{truck.capacitygal.toString()}</TableCell>
                 <TableCell>
                   <TruckStatusBadge status={truck.state} />
@@ -100,7 +100,7 @@ function TruckStatusBadge({ status }: { status: string }) {
 
   return (
     <Badge variant={getVariant() as any} className="whitespace-nowrap">
-      {TRUCK_STATES[status]}
+      {TRUCK_STATES[status as TruckState] || status}
     </Badge>
   )
 }
