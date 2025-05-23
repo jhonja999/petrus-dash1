@@ -64,8 +64,8 @@ export default function AnalyticsPage() {
         { month: "Mar", revenue: 2450000, trips: 156, fuelCost: 890000 },
       ],
       topRoutes: [
-        { route: "Bogotá - Medellín", trips: 45, revenue: 850000 },
-        { route: "Bogotá - Cali", trips: 38, revenue: 720000 },
+        { route: "Lima - Perú", trips: 45, revenue: 850000 },
+        { route: "Cajamarca - Perú", trips: 38, revenue: 720000 },
         { route: "Medellín - Barranquilla", trips: 32, revenue: 680000 },
       ],
       driverPerformance: [

@@ -103,12 +103,12 @@ export default function NewCustomerPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="taxId">NIT/RUT *</Label>
+                <Label htmlFor="taxId">RUC</Label>
                 <Input
                   id="taxId"
                   value={formData.taxId}
                   onChange={(e) => handleInputChange("taxId", e.target.value)}
-                  placeholder="Ej: 900123456-7"
+                  placeholder="Ej: 12345678910"
                   required
                 />
               </div>
@@ -132,7 +132,7 @@ export default function NewCustomerPage() {
                   id="phone"
                   value={formData.phone}
                   onChange={(e) => handleInputChange("phone", e.target.value)}
-                  placeholder="Ej: +57 1 234 5678"
+                  placeholder="Ej: +51 123 456 789"
                   required
                 />
               </div>
@@ -145,9 +145,8 @@ export default function NewCustomerPage() {
                   <SelectValue placeholder="Seleccionar tipo" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Corporativo">Corporativo</SelectItem>
+                  <SelectItem value="Corporativo">Empresa</SelectItem>
                   <SelectItem value="PYME">PYME</SelectItem>
-                  <SelectItem value="Gobierno">Gobierno</SelectItem>
                   <SelectItem value="Individual">Individual</SelectItem>
                 </SelectContent>
               </Select>
@@ -179,7 +178,7 @@ export default function NewCustomerPage() {
                   id="city"
                   value={formData.city}
                   onChange={(e) => handleInputChange("city", e.target.value)}
-                  placeholder="Ej: Bogotá"
+                  placeholder="Ej: Cajamarca"
                   required
                 />
               </div>
@@ -189,7 +188,7 @@ export default function NewCustomerPage() {
                   id="state"
                   value={formData.state}
                   onChange={(e) => handleInputChange("state", e.target.value)}
-                  placeholder="Ej: Cundinamarca"
+                  placeholder="Ej: Cajamarca"
                   required
                 />
               </div>
@@ -199,7 +198,7 @@ export default function NewCustomerPage() {
                   id="zipCode"
                   value={formData.zipCode}
                   onChange={(e) => handleInputChange("zipCode", e.target.value)}
-                  placeholder="Ej: 110111"
+                  placeholder="Ej: 06002"
                 />
               </div>
             </div>
@@ -228,7 +227,7 @@ export default function NewCustomerPage() {
                   id="contactPhone"
                   value={formData.contactPhone}
                   onChange={(e) => handleInputChange("contactPhone", e.target.value)}
-                  placeholder="Ej: +57 300 123 4567"
+                  placeholder="Ej: +51 123 456 789"
                 />
               </div>
             </div>
@@ -240,7 +239,7 @@ export default function NewCustomerPage() {
                 type="email"
                 value={formData.contactEmail}
                 onChange={(e) => handleInputChange("contactEmail", e.target.value)}
-                placeholder="Ej: ana.garcia@empresa.com"
+                placeholder="Ej: persona.contacto@empresa.com"
               />
             </div>
           </CardContent>
@@ -260,7 +259,7 @@ export default function NewCustomerPage() {
                   type="number"
                   value={formData.creditLimit}
                   onChange={(e) => handleInputChange("creditLimit", e.target.value)}
-                  placeholder="Ej: 5000000"
+                  placeholder="Ej: 5000"
                 />
               </div>
               <div className="space-y-2">

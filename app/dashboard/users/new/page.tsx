@@ -104,7 +104,7 @@ export default function NewUserPage() {
                   type="email"
                   value={formData.email}
                   onChange={(e) => handleInputChange("email", e.target.value)}
-                  placeholder="Ej: juan@ejemplo.com"
+                  placeholder="Ej: correo@ejemplo.com"
                   required
                 />
               </div>
@@ -117,7 +117,7 @@ export default function NewUserPage() {
                   id="phone"
                   value={formData.phone}
                   onChange={(e) => handleInputChange("phone", e.target.value)}
-                  placeholder="Ej: +57 300 123 4567"
+                  placeholder="Ej: +51 123 456 789"
                   required
                 />
               </div>
@@ -142,7 +142,7 @@ export default function NewUserPage() {
                 id="address"
                 value={formData.address}
                 onChange={(e) => handleInputChange("address", e.target.value)}
-                placeholder="Ej: Calle 123 #45-67, Bogotá"
+                placeholder="Ej: Calle 123 #45-67, Perú"
               />
             </div>
           </CardContent>
@@ -200,7 +200,7 @@ export default function NewUserPage() {
                   id="emergencyContact"
                   value={formData.emergencyContact}
                   onChange={(e) => handleInputChange("emergencyContact", e.target.value)}
-                  placeholder="Ej: María Pérez"
+                  placeholder="Ej: Juan Pérez"
                 />
               </div>
               <div className="space-y-2">
@@ -209,7 +209,7 @@ export default function NewUserPage() {
                   id="emergencyPhone"
                   value={formData.emergencyPhone}
                   onChange={(e) => handleInputChange("emergencyPhone", e.target.value)}
-                  placeholder="Ej: +57 300 987 6543"
+                  placeholder="Ej: +51 123 456 789"
                 />
               </div>
             </div>
