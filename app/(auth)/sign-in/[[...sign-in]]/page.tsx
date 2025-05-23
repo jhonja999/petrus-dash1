@@ -2,8 +2,8 @@ import { SignIn } from "@clerk/nextjs"
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "Sign In - Fuel Dispatch Management",
-  description: "Sign in to your account",
+  title: "Ingresa - Petrus Management",
+  description: "Ingresa a tu cuenta",
 }
 
 export default function SignInPage() {

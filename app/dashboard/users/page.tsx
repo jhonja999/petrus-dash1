@@ -46,7 +46,7 @@ export default function UsersPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Usuarios</h1>
-          <p className="text-muted-foreground">Gestiona los usuarios del sistema</p>
+          <p className="text-muted-foreground">Gestiona los usuarios/conductores del sistema</p>
         </div>
         <div className="flex gap-2">
           <DropdownMenu>

@@ -21,7 +21,7 @@ export default async function DriverLayout({
         <div className="container flex h-14 items-center px-4">
           <Link href="/driver" className="flex items-center gap-2 font-bold">
             <Fuel className="h-5 w-5" />
-            <span>Fuel Dispatch</span>
+            <span>Petrus</span>
           </Link>
 
           {/* Desktop Navigation */}

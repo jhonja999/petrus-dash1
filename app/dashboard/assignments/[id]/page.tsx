@@ -10,9 +10,13 @@ import { formatDate, formatDateTime } from "@/lib/date"
 import { FUEL_TYPES } from "@/lib/constants"
 
 async function getAssignment(id: number) {
+  if (!id || isNaN(id)) {
+    notFound()
+  }
+
   const assignment = await prisma.assignment.findUnique({
     where: {
-      id: id, // Explicitly use named parameter
+      id: id,
     },
     include: {
       truck: true,
@@ -35,9 +39,16 @@ async function getAssignment(id: number) {
 export default async function AssignmentDetailPage({
   params,
 }: {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }) {
-  const id = Number.parseInt(params.id)
+  // Await params before accessing its properties (Next.js 15 requirement)
+  const { id: idParam } = await params
+  const id = Number.parseInt(idParam)
+
+  if (isNaN(id)) {
+    notFound()
+  }
+
   const assignment = await getAssignment(id)
 
   // Calculate total discharged

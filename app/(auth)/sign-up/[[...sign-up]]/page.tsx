@@ -2,8 +2,8 @@ import { SignUp } from "@clerk/nextjs"
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "Sign Up - Fuel Dispatch Management",
-  description: "Create a new account",
+  title: "Registrate - Petrus",
+  description: "Crea una cuenta Nueva",
 }
 
 export default function SignUpPage() {
