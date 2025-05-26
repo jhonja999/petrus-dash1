@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Alert, AlertDescription,} from "@/components/ui/alert"
 import { FUEL_TYPES } from "@/lib/constants"
 import { Skeleton } from "@/components/ui/skeleton"
 
@@ -98,7 +98,10 @@ export default function SelectTruckPage() {
       {error && (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Error</AlertTitle>
+          <div className="flex-1">
+            Error
+          </div>
+
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
@@ -106,7 +109,7 @@ export default function SelectTruckPage() {
       {success && (
         <Alert variant="default" className="bg-green-50 text-green-800 border-green-200">
           <CheckCircle2 className="h-4 w-4" />
-          <AlertTitle>Éxito</AlertTitle>
+          <div className="font-semibold">Éxito</div>
           <AlertDescription>{success}</AlertDescription>
         </Alert>
       )}

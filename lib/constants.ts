@@ -1,4 +1,4 @@
-export const FUEL_TYPES = {
+export const FUEL_TYPES: { [key: string]: string } = {
   DIESEL_B5: "Diesel B5",
   GASOLINA_90: "Gasolina 90",
   GASOLINA_95: "Gasolina 95",
