@@ -1,32 +1,25 @@
-// Global type definitions for the application
-type SessionClaims = {
+// types/globals.d.ts
+
+export type UserRole = "admin" | "conductor"
+export type UserState = "Activo" | "Inactivo" | "Suspendido" | "Eliminado" | "Asignado"
+export type TruckState = "Activo" | "Inactivo" | "Mantenimiento" | "Transito" | "Descarga" | "Asignado"
+export type FuelType = "DIESEL_B5" | "GASOLINA_90" | "GASOLINA_95" | "GLP" | "ELECTRICA"
+
+export interface SessionClaims {
   metadata?: {
-    role?: string;
+    role?: UserRole;
   };
-};
-
-const { userId, sessionClaims } = await auth();
-const userRole = (sessionClaims as SessionClaims)?.metadata?.role;
-
-// Truck types
-type TruckState = "Activo" | "Inactivo" | "Mantenimiento" | "Transito" | "Descarga" | "Asignado"
-type FuelType = "DIESEL_B5" | "GASOLINA_90" | "GASOLINA_95" | "GLP" | "ELECTRICA"
-
-interface Truck {
-  id: number
-  placa: string
-  typefuel: FuelType
-  capacitygal: number
-  state: TruckState
-  createdAt: string
-  updatedAt: string
 }
 
-// User types
-type UserRole = "Conductor" | "ADMIN"
-type UserState = "Activo" | "Inactivo" | "Suspendido" | "Eliminado" | "Asignado"
+declare global {
+  interface CustomJwtSessionClaims {
+    metadata?: {
+      role?: UserRole
+    }
+  }
+}
 
-interface User {
+export interface User {
   id: number
   clerkId?: string
   dni: string
@@ -39,8 +32,17 @@ interface User {
   updatedAt: string
 }
 
-// Customer types
-interface Customer {
+export interface Truck {
+  id: number
+  placa: string
+  typefuel: FuelType
+  capacitygal: number
+  state: TruckState
+  createdAt: string
+  updatedAt: string
+}
+
+export interface Customer {
   id: number
   companyname: string
   ruc: string
@@ -52,8 +54,7 @@ interface Customer {
   updatedAt: string
 }
 
-// Assignment types
-interface Assignment {
+export interface Assignment {
   id: number
   truckId: number
   driverId: number
@@ -70,8 +71,7 @@ interface Assignment {
   discharges?: Discharge[]
 }
 
-// Discharge types
-interface Discharge {
+export interface Discharge {
   id: number
   assignmentId: number
   customerId: number
@@ -85,35 +85,33 @@ interface Discharge {
   customer?: Customer
 }
 
-// Analytics types
-interface DashboardStats {
+export interface DashboardStats {
   trucksCount: number
   activeDrivers: number
   customersCount: number
   todayAssignments: number
   totalFuelToday: number
-  truckStateData: { state: string; count: number }[]
+  truckStateData: { state: TruckState; count: number }[]
 }
 
-interface FuelConsumption {
-  fuelType: string
+export interface FuelConsumption {
+  fuelType: FuelType
   total: number
 }
 
-interface AssignmentsByPeriod {
+export interface AssignmentsByPeriod {
   period: string
   count: number
 }
 
-// Form types
-interface TruckFormValues {
+export interface TruckFormValues {
   placa: string
   typefuel: FuelType
   capacitygal: number
   state: TruckState
 }
 
-interface UserFormValues {
+export interface UserFormValues {
   dni: string
   name: string
   lastname: string
@@ -122,7 +120,7 @@ interface UserFormValues {
   state: UserState
 }
 
-interface CustomerFormValues {
+export interface CustomerFormValues {
   companyname: string
   ruc: string
   address: string
@@ -131,7 +129,7 @@ interface CustomerFormValues {
   contactEmail?: string
 }
 
-interface AssignmentFormValues {
+export interface AssignmentFormValues {
   truckId: number
   driverId: number
   totalLoaded: number
@@ -140,15 +138,10 @@ interface AssignmentFormValues {
   customers: number[]
 }
 
-interface DischargeFormValues {
+export interface DischargeFormValues {
   assignmentId: number
   customerId: number
   startMarker: number
   endMarker: number
   notes?: string
-}
-
-interface AssignmentAnalytics  {
-  period: string
-  count: number
 }

@@ -1,4 +1,5 @@
-// prisma/schema.prisma
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
   provider = "prisma-client-js"
@@ -43,37 +44,87 @@ enum FuelType {
   ELECTRICA
 }
 
+/// Tipos de licencia de conducir
+enum LicenseType {
+  A1      // Motocicletas hasta 125cc
+  A2      // Motocicletas hasta 400cc
+  A3      // Motocicletas de cualquier cilindrada
+  B1      // Automóviles hasta 3.5 toneladas
+  B2A     // Camiones hasta 7.5 toneladas
+  B2B     // Camiones hasta 15 toneladas
+  B2C     // Camiones de más de 15 toneladas
+  B3      // Vehículos articulados
+  B4      // Transporte de pasajeros
+}
+
 /// Modelo de Usuario
 model User {
-  id         Int           @id @default(autoincrement())
-  dni        String        @unique
-  name       String
-  lastname   String
-  email      String        @unique
-  password   String        @default("peru2025++")
-  clerkId    String?       @unique
-  role       Role          @default(Conductor)
-  state      UserState     @default(Activo)
-  createdAt  DateTime      @default(now())
-  updatedAt  DateTime      @updatedAt
-  Assignment Assignment[]
+  id              Int           @id @default(autoincrement())
+  dni             String        @unique
+  name            String
+  lastname        String
+  email           String        @unique
+  password        String        @default("peru2025++")
+  clerkId         String?       @unique
+  role            Role          @default(Conductor)
+  state           UserState     @default(Activo)
+  
+  // Campos específicos para conductores
+  licenseNumber   String?       // Número de licencia de conducir
+  licenseType     LicenseType?  // Tipo de licencia
+  licenseExpiry   DateTime?     // Fecha de vencimiento de licencia
+  phone           String?       // Teléfono del conductor
+  address         String?       // Dirección del conductor
+  emergencyContact String?      // Contacto de emergencia
+  emergencyPhone  String?       // Teléfono de emergencia
+  
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  Assignment      Assignment[]
 
   @@index([role, state])
   @@index([clerkId])
+  @@index([licenseType])
 }
 
 /// Modelo de Camión
 model Truck {
-  id          Int           @id @default(autoincrement())
-  placa       String        @unique
-  typefuel    FuelType
-  capacitygal Decimal       @db.Decimal(10, 2)
-  state       TruckState    @default(Activo)
-  Assignment  Assignment[]
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  id              Int           @id @default(autoincrement())
+  placa           String        @unique
+  typefuel        FuelType
+  capacitygal     Decimal       @db.Decimal(10, 2)
+  state           TruckState    @default(Activo)
+  
+  // Especificaciones técnicas
+  brand           String?       // Marca del camión
+  model           String?       // Modelo del camión
+  year            Int?          // Año de fabricación
+  engineNumber    String?       // Número de motor
+  chassisNumber   String?       // Número de chasis
+  color           String?       // Color del vehículo
+  mileage         Decimal?      @db.Decimal(10, 2) // Kilometraje actual
+  maxWeight       Decimal?      @db.Decimal(10, 2) // Peso máximo permitido
+  
+  // Información de mantenimiento
+  lastMaintenance DateTime?     // Última fecha de mantenimiento
+  nextMaintenance DateTime?     // Próxima fecha de mantenimiento
+  maintenanceKm   Decimal?      @db.Decimal(10, 2) // Kilometraje del último mantenimiento
+  
+  // Información de seguro
+  insuranceCompany String?      // Compañía de seguros
+  insurancePolicy  String?      // Número de póliza
+  insuranceExpiry  DateTime?    // Vencimiento del seguro
+  
+  // Información adicional
+  notes           String?       // Notas adicionales
+  
+  Assignment      Assignment[]
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
 
   @@index([state])
+  @@index([brand])
+  @@index([year])
 }
 
 /// Modelo de Cliente

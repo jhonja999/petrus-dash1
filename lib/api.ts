@@ -135,16 +135,43 @@ export const AnalyticsApi = {
 }
 
 // Helper functions for common API calls
-export const fetchTrucks = async (state: string | null | undefined) => {
-  // Convert null to undefined to match the TrucksApi.getAll parameter type
-  return await TrucksApi.getAll(state === null ? undefined : state)
+import type { User, Truck, Customer, Assignment } from "@/types"
+
+export async function fetchUsers(role?: string | null, state?: string | null): Promise<User[]> {
+  const params = new URLSearchParams()
+  if (role) params.append("role", role)
+  if (state) params.append("state", state)
+
+  const response = await fetch(`/api/users?${params.toString()}`)
+  if (!response.ok) {
+    throw new Error("Failed to fetch users")
+  }
+  return response.json()
 }
 
-export const fetchUsers = async (role: string | null | undefined, state: string | null | undefined) => {
-  // Convert null to undefined to match the UsersApi.getAll parameter types
-  return await UsersApi.getAll(role === null ? undefined : role, state === null ? undefined : state)
+export async function fetchTrucks(state?: string | null): Promise<Truck[]> {
+  const params = new URLSearchParams()
+  if (state) params.append("state", state)
+
+  const response = await fetch(`/api/trucks?${params.toString()}`)
+  if (!response.ok) {
+    throw new Error("Failed to fetch trucks")
+  }
+  return response.json()
 }
 
-export const fetchCustomers = async () => {
-  return await CustomersApi.getAll()
+export async function fetchCustomers(): Promise<Customer[]> {
+  const response = await fetch("/api/customers")
+  if (!response.ok) {
+    throw new Error("Failed to fetch customers")
+  }
+  return response.json()
+}
+
+export async function fetchAssignments(): Promise<Assignment[]> {
+  const response = await fetch("/api/assignments")
+  if (!response.ok) {
+    throw new Error("Failed to fetch assignments")
+  }
+  return response.json()
 }

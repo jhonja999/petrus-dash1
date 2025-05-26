@@ -1,14 +1,15 @@
 import { auth, currentUser } from "@clerk/nextjs/server"
 import { redirect } from "next/navigation"
+import type { UserRole } from "@/types/globals"
 
-export async function getUserRole() {
+export async function getUserRole(): Promise<UserRole | null> {
   const user = await currentUser()
 
-  if (!user) {
-    return null
-  }
+  if (!user) return null
 
-  return (user.publicMetadata.role as string) || "conductor"
+  const role = user.publicMetadata?.role as UserRole | undefined
+
+  return role || null
 }
 
 export async function requireAdmin() {
@@ -27,7 +28,7 @@ export async function requireDriver() {
   }
 }
 
-export async function getAuth() {
+export async function getAuth(): Promise<string> {
   const { userId } = await auth()
 
   if (!userId) {

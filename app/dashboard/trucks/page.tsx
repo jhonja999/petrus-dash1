@@ -16,36 +16,46 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
-import { TRUCK_STATES, FUEL_TYPES } from "@/lib/constants"
+import { FUEL_TYPES, TRUCK_STATES } from "@/lib/constants"
 import { fetchTrucks } from "@/lib/api"
+import type { Truck as TruckType } from "@/types"
 
 export default function TrucksPage() {
-  const [trucks, setTrucks] = useState<any[]>([])
+  const [trucks, setTrucks] = useState<TruckType[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [filter, setFilter] = useState<string | null>(null)
+  const [stateFilter, setStateFilter] = useState<string | null>(null)
 
   useEffect(() => {
     async function loadTrucks() {
       setIsLoading(true)
       try {
-        const data = await fetchTrucks(filter)
-        setTrucks(data)
+        const data = await fetchTrucks(stateFilter)
+        setTrucks(Array.isArray(data) ? data : [])
       } catch (error) {
         console.error("Error loading trucks:", error)
+        setTrucks([])
       } finally {
         setIsLoading(false)
       }
     }
 
     loadTrucks()
-  }, [filter])
+  }, [stateFilter])
+
+  const getFuelTypeLabel = (fuelType: string): string => {
+    return FUEL_TYPES[fuelType as keyof typeof FUEL_TYPES] || fuelType
+  }
+
+  const getStateLabel = (state: string): string => {
+    return TRUCK_STATES[state as keyof typeof TRUCK_STATES] || state
+  }
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Camiones</h1>
-          <p className="text-muted-foreground">Gestiona los camiones de la flota</p>
+          <p className="text-muted-foreground">Gestiona la flota de vehículos</p>
         </div>
         <div className="flex gap-2">
           <DropdownMenu>
@@ -59,9 +69,9 @@ export default function TrucksPage() {
               <DropdownMenuLabel>Filtrar por estado</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuGroup>
-                <DropdownMenuItem onSelect={() => setFilter(null)}>Todos</DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => setStateFilter(null)}>Todos</DropdownMenuItem>
                 {Object.entries(TRUCK_STATES).map(([value, label]) => (
-                  <DropdownMenuItem key={value} onSelect={() => setFilter(value)}>
+                  <DropdownMenuItem key={value} onSelect={() => setStateFilter(value)}>
                     {label}
                   </DropdownMenuItem>
                 ))}
@@ -83,9 +93,9 @@ export default function TrucksPage() {
           <CardTitle className="flex items-center gap-2">
             <Truck className="h-5 w-5" />
             Lista de Camiones
-            {filter && (
+            {stateFilter && (
               <Badge variant="outline" className="ml-2">
-                Filtro: {TRUCK_STATES[filter as keyof typeof TRUCK_STATES]}
+                Estado: {getStateLabel(stateFilter)}
               </Badge>
             )}
           </CardTitle>
@@ -100,16 +110,18 @@ export default function TrucksPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Placa</TableHead>
-                  <TableHead>Tipo de Combustible</TableHead>
-                  <TableHead>Capacidad (gal)</TableHead>
+                  <TableHead>Marca/Modelo</TableHead>
+                  <TableHead>Combustible</TableHead>
+                  <TableHead>Capacidad</TableHead>
                   <TableHead>Estado</TableHead>
+                  <TableHead>Kilometraje</TableHead>
                   <TableHead className="text-right">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {trucks.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="h-24 text-center">
+                    <TableCell colSpan={7} className="h-24 text-center">
                       No hay camiones registrados
                     </TableCell>
                   </TableRow>
@@ -117,11 +129,16 @@ export default function TrucksPage() {
                   trucks.map((truck) => (
                     <TableRow key={truck.id}>
                       <TableCell className="font-medium">{truck.placa}</TableCell>
-                      <TableCell>{FUEL_TYPES[truck.typefuel as keyof typeof FUEL_TYPES]}</TableCell>
-                      <TableCell>{truck.capacitygal}</TableCell>
                       <TableCell>
-                        <Badge variant="outline">{truck.state}</Badge>
+                        {truck.brand && truck.model ? `${truck.brand} ${truck.model}` : "N/A"}
+                        {truck.year && <div className="text-sm text-muted-foreground">{truck.year}</div>}
                       </TableCell>
+                      <TableCell>{getFuelTypeLabel(truck.typefuel)}</TableCell>
+                      <TableCell>{truck.capacitygal.toLocaleString()} gal</TableCell>
+                      <TableCell>
+                        <Badge variant="outline">{getStateLabel(truck.state)}</Badge>
+                      </TableCell>
+                      <TableCell>{truck.mileage ? `${truck.mileage.toLocaleString()} km` : "N/A"}</TableCell>
                       <TableCell className="text-right">
                         <Button variant="ghost" size="sm" asChild>
                           <Link href={`/dashboard/trucks/${truck.id}/edit`}>Editar</Link>

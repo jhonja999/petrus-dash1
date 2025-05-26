@@ -1,37 +1,28 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import { ArrowLeft, Save, Building2 } from "lucide-react"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { ArrowLeft, Save, Building2, AlertCircle } from "lucide-react"
 import Link from "next/link"
 
 export default function NewCustomerPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    phone: "",
+    companyname: "",
+    ruc: "",
     address: "",
-    city: "",
-    state: "",
-    zipCode: "",
-    contactPerson: "",
+    contactName: "",
     contactPhone: "",
     contactEmail: "",
-    taxId: "",
-    customerType: "",
-    creditLimit: "",
-    paymentTerms: "",
-    notes: "",
   })
 
   const handleInputChange = (field: string, value: string) => {
@@ -39,29 +30,80 @@ export default function NewCustomerPage() {
       ...prev,
       [field]: value,
     }))
+    // Clear error when user starts typing
+    if (error) setError(null)
+  }
+
+  const validateForm = () => {
+    if (!formData.companyname.trim()) {
+      setError("El nombre de la empresa es requerido")
+      return false
+    }
+    if (!formData.ruc.trim()) {
+      setError("El RUC es requerido")
+      return false
+    }
+    if (formData.ruc.length !== 11) {
+      setError("El RUC debe tener exactamente 11 dígitos")
+      return false
+    }
+    if (!/^\d{11}$/.test(formData.ruc)) {
+      setError("El RUC debe contener solo números")
+      return false
+    }
+    if (!formData.address.trim()) {
+      setError("La dirección es requerida")
+      return false
+    }
+    if (formData.contactEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.contactEmail)) {
+      setError("El formato del correo electrónico no es válido")
+      return false
+    }
+    return true
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    if (!validateForm()) {
+      return
+    }
+
     setLoading(true)
+    setError(null)
 
     try {
+      // Prepare data for submission - remove empty optional fields
+      const submitData = {
+        companyname: formData.companyname.trim(),
+        ruc: formData.ruc.trim(),
+        address: formData.address.trim(),
+        ...(formData.contactName.trim() && { contactName: formData.contactName.trim() }),
+        ...(formData.contactPhone.trim() && { contactPhone: formData.contactPhone.trim() }),
+        ...(formData.contactEmail.trim() && { contactEmail: formData.contactEmail.trim() }),
+      }
+
+      console.log("Submitting customer data:", submitData)
+
       const response = await fetch("/api/customers", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(submitData),
       })
+
+      const responseData = await response.json()
+      console.log("API Response:", responseData)
 
       if (response.ok) {
         router.push("/dashboard/customers")
       } else {
-        alert("Error al crear el cliente")
+        setError(responseData.details || responseData.error || "Error al crear el cliente")
       }
     } catch (error) {
       console.error("Error:", error)
-      alert("Error al crear el cliente")
+      setError("Error de conexión. Por favor, intenta nuevamente.")
     } finally {
       setLoading(false)
     }
@@ -81,6 +123,13 @@ export default function NewCustomerPage() {
         </div>
       </div>
 
+      {error && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
       <form onSubmit={handleSubmit} className="space-y-6">
         <Card>
           <CardHeader>
@@ -93,204 +142,84 @@ export default function NewCustomerPage() {
           <CardContent className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="name">Nombre de la Empresa *</Label>
+                <Label htmlFor="companyname">Nombre de la Empresa *</Label>
                 <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => handleInputChange("name", e.target.value)}
-                  placeholder="Ej: Transportes ABC S.A.S."
+                  id="companyname"
+                  value={formData.companyname}
+                  onChange={(e) => handleInputChange("companyname", e.target.value)}
+                  placeholder="Ej: Transportes ABC S.A.C."
                   required
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="taxId">RUC</Label>
+                <Label htmlFor="ruc">RUC * (11 dígitos)</Label>
                 <Input
-                  id="taxId"
-                  value={formData.taxId}
-                  onChange={(e) => handleInputChange("taxId", e.target.value)}
-                  placeholder="Ej: 12345678910"
+                  id="ruc"
+                  value={formData.ruc}
+                  onChange={(e) => {
+                    // Only allow numbers and limit to 11 characters
+                    const value = e.target.value.replace(/\D/g, "").slice(0, 11)
+                    handleInputChange("ruc", value)
+                  }}
+                  placeholder="Ej: 20123456789"
+                  maxLength={11}
                   required
                 />
+                <p className="text-xs text-muted-foreground">Ingresa exactamente 11 dígitos (solo números)</p>
               </div>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="email">Correo Electrónico *</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => handleInputChange("email", e.target.value)}
-                  placeholder="Ej: contacto@empresa.com"
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="phone">Teléfono *</Label>
-                <Input
-                  id="phone"
-                  value={formData.phone}
-                  onChange={(e) => handleInputChange("phone", e.target.value)}
-                  placeholder="Ej: +51 123 456 789"
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="customerType">Tipo de Cliente *</Label>
-              <Select value={formData.customerType} onValueChange={(value) => handleInputChange("customerType", value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar tipo" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Corporativo">Empresa</SelectItem>
-                  <SelectItem value="PYME">PYME</SelectItem>
-                  <SelectItem value="Individual">Individual</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Dirección</CardTitle>
-            <CardDescription>Ubicación física del cliente</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="address">Dirección *</Label>
-              <Input
+              <Textarea
                 id="address"
                 value={formData.address}
                 onChange={(e) => handleInputChange("address", e.target.value)}
-                placeholder="Ej: Calle 123 #45-67"
+                placeholder="Ej: Av. Principal 123, Cajamarca, Perú"
                 required
+                rows={3}
               />
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-3">
-              <div className="space-y-2">
-                <Label htmlFor="city">Ciudad *</Label>
-                <Input
-                  id="city"
-                  value={formData.city}
-                  onChange={(e) => handleInputChange("city", e.target.value)}
-                  placeholder="Ej: Cajamarca"
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="state">Departamento *</Label>
-                <Input
-                  id="state"
-                  value={formData.state}
-                  onChange={(e) => handleInputChange("state", e.target.value)}
-                  placeholder="Ej: Cajamarca"
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="zipCode">Código Postal</Label>
-                <Input
-                  id="zipCode"
-                  value={formData.zipCode}
-                  onChange={(e) => handleInputChange("zipCode", e.target.value)}
-                  placeholder="Ej: 06002"
-                />
-              </div>
             </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>Persona de Contacto</CardTitle>
-            <CardDescription>Información del contacto principal</CardDescription>
+            <CardTitle>Información de Contacto</CardTitle>
+            <CardDescription>Datos del contacto principal (opcional)</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="contactName">Nombre del Contacto</Label>
+              <Input
+                id="contactName"
+                value={formData.contactName}
+                onChange={(e) => handleInputChange("contactName", e.target.value)}
+                placeholder="Ej: Juan Pérez"
+              />
+            </div>
+
             <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="contactPerson">Nombre del Contacto</Label>
-                <Input
-                  id="contactPerson"
-                  value={formData.contactPerson}
-                  onChange={(e) => handleInputChange("contactPerson", e.target.value)}
-                  placeholder="Ej: Ana García"
-                />
-              </div>
               <div className="space-y-2">
                 <Label htmlFor="contactPhone">Teléfono del Contacto</Label>
                 <Input
                   id="contactPhone"
                   value={formData.contactPhone}
                   onChange={(e) => handleInputChange("contactPhone", e.target.value)}
-                  placeholder="Ej: +51 123 456 789"
+                  placeholder="Ej: +51 987 654 321"
                 />
+                <p className="text-xs text-muted-foreground">Formato: +51 987 654 321 (9 caracteres)</p>
               </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="contactEmail">Correo del Contacto</Label>
-              <Input
-                id="contactEmail"
-                type="email"
-                value={formData.contactEmail}
-                onChange={(e) => handleInputChange("contactEmail", e.target.value)}
-                placeholder="Ej: persona.contacto@empresa.com"
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Términos Comerciales</CardTitle>
-            <CardDescription>Condiciones de pago y crédito</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="creditLimit">Límite de Crédito</Label>
+                <Label htmlFor="contactEmail">Correo del Contacto</Label>
                 <Input
-                  id="creditLimit"
-                  type="number"
-                  value={formData.creditLimit}
-                  onChange={(e) => handleInputChange("creditLimit", e.target.value)}
-                  placeholder="Ej: 5000"
+                  id="contactEmail"
+                  type="email"
+                  value={formData.contactEmail}
+                  onChange={(e) => handleInputChange("contactEmail", e.target.value)}
+                  placeholder="Ej: contacto.persona@empresa.com"
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="paymentTerms">Términos de Pago</Label>
-                <Select
-                  value={formData.paymentTerms}
-                  onValueChange={(value) => handleInputChange("paymentTerms", value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar términos" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Contado">Contado</SelectItem>
-                    <SelectItem value="15 días">15 días</SelectItem>
-                    <SelectItem value="30 días">30 días</SelectItem>
-                    <SelectItem value="45 días">45 días</SelectItem>
-                    <SelectItem value="60 días">60 días</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="notes">Notas Adicionales</Label>
-              <Textarea
-                id="notes"
-                value={formData.notes}
-                onChange={(e) => handleInputChange("notes", e.target.value)}
-                placeholder="Información adicional sobre el cliente..."
-                rows={3}
-              />
             </div>
           </CardContent>
         </Card>

@@ -18,9 +18,10 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { ROLES, USER_STATES } from "@/lib/constants"
 import { fetchUsers } from "@/lib/api"
+import type { User as UserType } from "@/types"
 
 export default function UsersPage() {
-  const [users, setUsers] = useState<any[]>([])
+  const [users, setUsers] = useState<UserType[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [roleFilter, setRoleFilter] = useState<string | null>(null)
   const [stateFilter, setStateFilter] = useState<string | null>(null)
@@ -30,9 +31,10 @@ export default function UsersPage() {
       setIsLoading(true)
       try {
         const data = await fetchUsers(roleFilter, stateFilter)
-        setUsers(data)
+        setUsers(Array.isArray(data) ? data : [])
       } catch (error) {
         console.error("Error loading users:", error)
+        setUsers([])
       } finally {
         setIsLoading(false)
       }
@@ -41,12 +43,20 @@ export default function UsersPage() {
     loadUsers()
   }, [roleFilter, stateFilter])
 
+  const getRoleLabel = (role: string): string => {
+    return ROLES[role as keyof typeof ROLES] || role
+  }
+
+  const getStateLabel = (state: string): string => {
+    return USER_STATES[state as keyof typeof USER_STATES] || state
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Usuarios</h1>
-          <p className="text-muted-foreground">Gestiona los usuarios/conductores del sistema</p>
+          <p className="text-muted-foreground">Gestiona los usuarios del sistema</p>
         </div>
         <div className="flex gap-2">
           <DropdownMenu>
@@ -97,12 +107,12 @@ export default function UsersPage() {
             Lista de Usuarios
             {roleFilter && (
               <Badge variant="outline" className="ml-2">
-                Rol: {ROLES[roleFilter as keyof typeof ROLES]}
+                Rol: {getRoleLabel(roleFilter)}
               </Badge>
             )}
             {stateFilter && (
               <Badge variant="outline" className="ml-2">
-                Estado: {USER_STATES[stateFilter as keyof typeof USER_STATES]}
+                Estado: {getStateLabel(stateFilter)}
               </Badge>
             )}
           </CardTitle>
@@ -121,27 +131,38 @@ export default function UsersPage() {
                   <TableHead>Email</TableHead>
                   <TableHead>Rol</TableHead>
                   <TableHead>Estado</TableHead>
+                  <TableHead>Licencia</TableHead>
                   <TableHead className="text-right">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {users.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="h-24 text-center">
+                    <TableCell colSpan={7} className="h-24 text-center">
                       No hay usuarios registrados
                     </TableCell>
                   </TableRow>
                 ) : (
                   users.map((user) => (
                     <TableRow key={user.id}>
-                      <TableCell>{user.dni}</TableCell>
+                      <TableCell>{user.dni || "N/A"}</TableCell>
                       <TableCell className="font-medium">
                         {user.name} {user.lastname}
                       </TableCell>
                       <TableCell>{user.email}</TableCell>
-                      <TableCell>{ROLES[user.role as keyof typeof ROLES]}</TableCell>
+                      <TableCell>{getRoleLabel(user.role)}</TableCell>
                       <TableCell>
-                        <Badge variant="outline">{user.state}</Badge>
+                        <Badge variant="outline">{getStateLabel(user.state)}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        {user.licenseNumber ? (
+                          <div className="text-sm">
+                            <div>{user.licenseNumber}</div>
+                            <div className="text-muted-foreground">{user.licenseType}</div>
+                          </div>
+                        ) : (
+                          "N/A"
+                        )}
                       </TableCell>
                       <TableCell className="text-right">
                         <Button variant="ghost" size="sm" asChild>
